@@ -1,6 +1,9 @@
 import 'dart:ui';
+import 'package:cars/blocs/login_bloc.dart';
+import 'package:cars/models/user.dart';
 import 'package:cars/pages/home_page.dart';
-import 'package:cars/services/login_api.dart';
+import 'package:cars/services/api_response.dart';
+// import 'package:cars/services/login_api.dart';
 import 'package:cars/utils/navigation.dart';
 import 'package:cars/widgets/components/form_button.dart';
 import 'package:cars/widgets/components/form_input.dart';
@@ -20,10 +23,15 @@ class _LoginPageState extends State<LoginPage> {
 
   final _focusPassword = FocusNode();
 
+  final _bloc = LoginBloc();
+
+  // bool _showProgress = false; // substituído pelo stream do bloc
+
   @override
   void dispose() {
     _tLogin.dispose();
     _tPassword.dispose();
+    _bloc.dispose();
 
     super.dispose();
   }
@@ -64,7 +72,18 @@ class _LoginPageState extends State<LoginPage> {
                     focusNode: _focusPassword,
                   ),
                   SizedBox(height: 8),
-                  FormButton(text: "Login", onPressed: _onClickLogin),
+                  StreamBuilder<bool>(
+                    stream: _bloc.stream,
+                    initialData: false,
+                    builder: (context, snapshot) {
+                      final isLoading = snapshot.data == true;
+                      return FormButton(
+                        text: "Login",
+                        onPressed: isLoading ? null : _onClickLogin,
+                        showProgress: isLoading,
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -131,10 +150,37 @@ class _LoginPageState extends State<LoginPage> {
     print("login: $login");
     print("password: $password");
 
-    bool loginSucces = await LoginApi.login(login, password);
+    ApiResponse<User> response = await _bloc.login(login, password);
 
-    if (loginSucces) {
+    if (response.succes) {
+      User user = response.result!;
       navigateTo(context, HomePage());
+      print(user.cpf_cnpj);
+      print(user);
+    } else {
+      return alert("Usuário e/ou senha inválido(s)");
     }
+  }
+
+  void alert(String msg) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return PopScope(
+          child: AlertDialog(
+            title: Text("Guia"),
+            content: Text(msg),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("Fechar"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
