@@ -152,13 +152,14 @@ class _LoginPageState extends State<LoginPage> {
 
     ApiResponse<User> response = await _bloc.login(login, password);
 
-    if (response.succes) {
-      User user = response.result!;
-      navigateTo(context, HomePage());
-      print(user.cpf_cnpj);
-      print(user);
-    } else {
-      return alert("Usuário e/ou senha inválido(s)");
+    switch (response) {
+      case Succes(:final data):
+        navigateTo(context, HomePage());
+        print(data.cpf_cnpj);
+        break;
+
+      case Failure(:final message):
+        return alert("Usuário e/ou senha inválido(s)");
     }
   }
 

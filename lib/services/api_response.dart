@@ -1,15 +1,13 @@
-class ApiResponse<T> {
-  bool succes;
-  String msg;
-  T? result;  // Pode ser nulo, já que nem sempre teremos um 'result'
+sealed class ApiResponse<T> {
+  const ApiResponse();
+}
 
-  // Construtor para resposta de sucesso
-  ApiResponse.succes(this.result)
-      : succes = true,
-        msg = '';  // Para sucesso, podemos definir uma mensagem padrão vazia
+class Succes<T> extends ApiResponse<T> {
+  final T data;
+  const Succes(this.data);
+}
 
-  // Construtor para resposta de erro
-  ApiResponse.error(this.msg)
-      : succes = false,
-        result = null;  // Quando for erro, o 'result' é nulo
+class Failure<T> extends ApiResponse<T> {
+  final String message;
+  const Failure(this.message);
 }

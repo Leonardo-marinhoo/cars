@@ -18,16 +18,19 @@ class LoginApi {
       '/api/tenant/login',
     );
 
-    var response = await http.post(url, body: json, headers: headers);
+      var response = await http.post(url, body: json, headers: headers);
     try {
       Map<String, dynamic> mapResponse = jsonDecode(response.body);
       mapResponse["user"]["token"] = mapResponse["token"];
-      final user = User.fromJson(mapResponse["user"]);
-      return ApiResponse.succes(user);
+
+      final User user = User.fromJson(mapResponse["user"]);
+      user.save();
+
+      return Succes(user);
     } catch (e) {
       print("-----------------------------------------");
       print(response.body);
-      return ApiResponse.error("msg: 'erro'");
+      return Failure("msg: 'erro'");
     }
   }
 }
