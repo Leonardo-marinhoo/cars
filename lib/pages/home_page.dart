@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cars/models/service.dart';
 import 'package:cars/models/user.dart';
 import 'package:cars/services/service_api.dart';
@@ -12,7 +14,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<User?> _futureUser;
-  late List<Service> services;
+
+  final _streamController = StreamController<List<Service>>();
 
   @override
   void initState() {
@@ -20,13 +23,13 @@ class _HomePageState extends State<HomePage> {
     // _loadUser();
 
     _futureUser = User.get();
-
+    _fetchServices();
   }
 
   _fetchServices() async {
-    List<Service> _futureServices = await ServiceApi().getServices();
+    List<Service> services = await ServiceApi().getServices();
     setState(() {
-      services = _futureServices;
+      _streamController.add(services);
     });
   }
 
@@ -57,27 +60,31 @@ class _HomePageState extends State<HomePage> {
           ),
           body: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: _servicesList(services),
+            child: _servicesList(),
           ),
         );
       },
     );
   }
 
-
-
-  Widget _servicesList(List<Service> services) {
-    return ListView.builder(
-      itemCount: services.length,
-      itemBuilder: (context, index) {
-        Service curService = services[index];
-        return Container(
-          margin: EdgeInsets.only(bottom: 16),
-          color: Colors.grey,
-          child: SizedBox(
-            height: 500,
-            width: double.infinity
-          ),
+  Widget _servicesList() {
+    return StreamBuilder<List<Service>>(
+      stream: _streamController.stream,
+      builder: (context, asyncSnapshot) {
+        if(!asyncSnapshot.hasData){
+          return Center(child: CircularProgressIndicator(),);
+        }
+        List<Service> services = asyncSnapshot.data!;
+        return ListView.builder(
+          itemCount: services.length,
+          itemBuilder: (context, index) {
+            Service curService = services[index];
+            return Container(
+              margin: EdgeInsets.only(bottom: 16),
+              color: Colors.grey,
+              child: SizedBox(height: 500, width: double.infinity),
+            );
+          },
         );
       },
     );
