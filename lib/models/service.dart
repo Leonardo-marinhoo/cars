@@ -47,22 +47,23 @@ class Service {
     updatedAt = json['updated_at'];
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['tenant_id'] = this.tenantId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['price'] = this.price;
-    data['cost'] = this.cost;
-    data['duration_minutes'] = this.durationMinutes;
-    data['image_url'] = this.imageUrl;
-    data['is_active'] = this.isActive;
-    data['is_featured'] = this.isFeatured;
-    data['category'] = this.category;
-    data['sort_order'] = this.sortOrder;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
-    return data;
-  }
+ Map<String, dynamic> toJson() {
+  return {
+    'id': id,
+    'tenant_id': tenantId,
+    'name': name,
+    'description': description,
+    'price': price,
+    'cost': cost,
+    'duration_minutes': durationMinutes,
+    'image_url': imageUrl,
+    'is_active': isActive,
+    'is_featured': isFeatured,
+    'category': category,
+    'sort_order': sortOrder,
+    'created_at': createdAt,
+    'updated_at': updatedAt,
+  };
+}
+
 }
