@@ -1,3 +1,4 @@
+import 'package:cars/pages/home_page.dart';
 import 'package:cars/pages/login_page.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Carros',
-      home: LoginPage(),
+      home: HomePage(),
     );
   }
 }

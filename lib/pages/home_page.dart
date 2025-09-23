@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:awesome_bottom_bar/awesome_bottom_bar.dart';
 import 'package:cars/models/service.dart';
 import 'package:cars/models/user.dart';
 import 'package:cars/services/service_api.dart';
+import 'package:cars/widgets/containers/service_list.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,41 +15,47 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  late Future<User?> _futureUser;
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin<HomePage> {
+  final _userStreamController = StreamController<User>();
 
-  final _streamController = StreamController<List<Service>>();
+  final List<TabItem> navigationTabs = [
+    TabItem(icon: FontAwesomeIcons.house, title: 'Barbearia'),
+    TabItem(icon: FontAwesomeIcons.scissors, title: 'Serviços'),
+    TabItem(icon: FontAwesomeIcons.calendar, title: 'Agenda'),
+    TabItem(icon: FontAwesomeIcons.wallet, title: 'Financeiro'),
+    TabItem(icon: FontAwesomeIcons.users, title: 'Clientes'),
+  ];
+  int curSelectedTab = 0;
 
   @override
   void initState() {
     super.initState();
     // _loadUser();
 
-    _futureUser = User.get();
-    _fetchServices();
+    _loadUser();
   }
 
-  _fetchServices() async {
-    List<Service> services = await ServiceApi().getServices();
-    setState(() {
-      _streamController.add(services);
-    });
+  @override
+  void dispose() {
+    super.dispose();
+    _userStreamController.close();
   }
 
-  // Future<User?> _loadUser() async {
-  //   User? user = await User.get();
+ 
+  _loadUser() async {
+    User? user = await User.get();
 
-  //   if (user !=null) {
-  //     return user;
-  //     //FAZER VERIFICAÇÃO SE TOKEN É VALIDO OU RETORNAR NULL / ERRO / VOLTAR PRA TELA DE LOGIN
-  //   }
-  //   return null;
-  // }
+    if (user != null) {
+      _userStreamController.add(user);
+      //FAZER VERIFICAÇÃO SE TOKEN É VALIDO OU RETORNAR NULL / ERRO / VOLTAR PRA TELA DE LOGIN
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _futureUser,
+    return StreamBuilder(
+      stream: _userStreamController.stream,
       builder: (context, userSnapshot) {
         if (!userSnapshot.hasData || userSnapshot.hasError) {
           return Center(child: Text("erro"));
@@ -58,33 +67,22 @@ class _HomePageState extends State<HomePage> {
             title: Text(user.name, style: TextStyle(color: Colors.white)),
             backgroundColor: Colors.blue,
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _servicesList(),
+          bottomNavigationBar: BottomBarCreative(
+            indexSelected: curSelectedTab,
+            items: navigationTabs,
+            onTap: (index) => setState(() {
+              curSelectedTab = index;
+            }),
+            backgroundColor: Colors.white,
+            color: const Color.fromARGB(255, 158, 158, 158),
+            colorSelected: const Color.fromARGB(255, 0, 34, 255),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _servicesList() {
-    return StreamBuilder<List<Service>>(
-      stream: _streamController.stream,
-      builder: (context, asyncSnapshot) {
-        if(!asyncSnapshot.hasData){
-          return Center(child: CircularProgressIndicator(),);
-        }
-        List<Service> services = asyncSnapshot.data!;
-        return ListView.builder(
-          itemCount: services.length,
-          itemBuilder: (context, index) {
-            Service curService = services[index];
-            return Container(
-              margin: EdgeInsets.only(bottom: 16),
-              color: Colors.grey,
-              child: SizedBox(height: 500, width: double.infinity),
-            );
-          },
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ServiceList(),
+            ),
+          ),
         );
       },
     );
