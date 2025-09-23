@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cars/blocs/service_bloc.dart';
 import 'package:cars/models/service.dart';
 import 'package:cars/services/service_api.dart';
 import 'package:flutter/material.dart';
@@ -15,32 +16,32 @@ class _ServiceListState extends State<ServiceList> with AutomaticKeepAliveClient
   @override
   bool get wantKeepAlive => true;
 
-  final _streamController = StreamController<List<Service>>();
+  final _serviceBloc = ServiceBloc();
 
   @override
   void initState() {
     super.initState();
-    _fetchServices();
+    _serviceBloc.getServices();
   }
 
   @override
   void dispose(){
     super.dispose();
-    _streamController.close();
+    _serviceBloc.dispose();
   }
 
-  _fetchServices() async {
-    List<Service> services = await ServiceApi().getServices();
-    _streamController.add(services);
-  }
+
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return StreamBuilder<List<Service>>(
-      stream: _streamController.stream,
+      stream: _serviceBloc.stream,
       builder: (context, asyncSnapshot) {
-        if (!asyncSnapshot.hasData) {
+        if(asyncSnapshot.hasError){
+          return Center(child:Text("Erro ao carregar serviços"));
+        }
+        if (asyncSnapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
         List<Service> services = asyncSnapshot.data!;
